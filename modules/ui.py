@@ -466,10 +466,10 @@ def create_toprow(is_img2img):
                 with gr.Column(scale=80):
                     with gr.Row():
                         negative_prompt = gr.Textbox(label="Negative prompt", elem_id=f"{id_part}_neg_prompt", show_label=False, lines=2,
-                            placeholder="Negative prompt (press Ctrl+Enter or Alt+Enter to generate)"
+                            placeholder="Negative prompt (press Ctrl+Enter or Alt+Enter to generate)", visible=False
                         )
 
-        with gr.Column(scale=1, elem_id="roll_col"):
+        with gr.Column(scale=1, elem_id="roll_col", visible=False):
             roll = gr.Button(value=art_symbol, elem_id="roll", visible=len(shared.artist_db.artists) > 0)
             paste = gr.Button(value=paste_symbol, elem_id="paste")
             save_style = gr.Button(value=save_style_symbol, elem_id="style_create")
@@ -505,7 +505,7 @@ def create_toprow(is_img2img):
                     outputs=[],
                 )
 
-            with gr.Row():
+            with gr.Row(visible=False):
                 with gr.Column(scale=1, elem_id="style_pos_col"):
                     prompt_style = gr.Dropdown(label="Style 1", elem_id=f"{id_part}_style_index", choices=[k for k, v in shared.prompt_styles.styles.items()], value=next(iter(shared.prompt_styles.styles.keys())))
                     prompt_style.save_to_config = True
@@ -581,7 +581,7 @@ def create_refresh_button(refresh_component, refresh_method, refreshed_args, ele
 
         return gr.update(**(args or {}))
 
-    refresh_button = gr.Button(value=refresh_symbol, elem_id=elem_id)
+    refresh_button = gr.Button(value=refresh_symbol, elem_id=elem_id, visible=False)
     refresh_button.click(
         fn=refresh,
         inputs=[],
@@ -688,7 +688,7 @@ def create_ui(wrap_gradio_gpu_call):
                 setup_progressbar(progressbar, txt2img_preview, 'txt2img')
 
         with gr.Row().style(equal_height=False):
-            with gr.Column(variant='panel'):
+            with gr.Column(variant='panel', visible=False):
                 steps = gr.Slider(minimum=1, maximum=150, step=1, label="Sampling Steps", value=20)
                 sampler_index = gr.Radio(label='Sampling method', elem_id="txt2img_sampling", choices=[x.name for x in samplers], value=samplers[0].name, type="index")
 
@@ -1043,7 +1043,7 @@ def create_ui(wrap_gradio_gpu_call):
             parameters_copypaste.add_paste_fields("img2img", init_img, img2img_paste_fields)
             parameters_copypaste.add_paste_fields("inpaint", init_img_with_mask, img2img_paste_fields)
 
-    with gr.Blocks(analytics_enabled=False) as extras_interface:
+    with gr.Blocks(analytics_enabled=False, visible=False) as extras_interface:
         with gr.Row().style(equal_height=False):
             with gr.Column(variant='panel'):
                 with gr.Tabs(elem_id="mode_extras"):
@@ -1620,7 +1620,7 @@ def create_ui(wrap_gradio_gpu_call):
     extensions_interface = ui_extensions.create_ui()
     interfaces += [(extensions_interface, "Extensions", "extensions")]
 
-    with gr.Blocks(css=css, analytics_enabled=False, title="Stable Diffusion") as demo:
+    with gr.Blocks(css=css, analytics_enabled=False, title="Stable Diffusion", visible=False) as demo:
         with gr.Row(elem_id="quicksettings"):
             for i, k, item in quicksettings_list:
                 component = create_setting_component(k, is_quicksettings=True)
