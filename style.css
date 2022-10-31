@@ -11,6 +11,11 @@
     height: 0px;
 }
 
+gr-text-input {
+    font-size: 30px;
+}
+
+
 .text-2xl {
     font-size: 200px;
     height: 800px;
