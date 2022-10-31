@@ -1,5 +1,6 @@
 .container {
     max-width: 100%;
+    max-height: 100%;
 }
 
 #txt2img_token_counter {
@@ -8,6 +9,11 @@
 
 #img2img_token_counter {
     height: 0px;
+}
+
+.text-2xl {
+    font-size: 200px;
+    height: 800px;
 }
 
 #sh{

@@ -696,6 +696,9 @@ def create_ui(wrap_gradio_gpu_call):
 
     parameters_copypaste.reset()
 
+    with gr.Blocks(analytics_enabled=False) as instructions_interface:
+        muse_label = gr.Label(value="Be an AI muse!", elem_id="instructions_label", num_top_classes="text-2xl")
+
     with gr.Blocks(analytics_enabled=False) as txt2img_interface:
         txt2img_prompt, roll, txt2img_prompt_style, txt2img_negative_prompt, txt2img_prompt_style2, submit, listen, _, _, txt2img_prompt_style_apply, txt2img_save_style, txt2img_paste, token_counter, token_button = create_toprow(is_img2img=False)
         dummy_component = gr.Label(visible=False)
@@ -1626,12 +1629,13 @@ def create_ui(wrap_gradio_gpu_call):
             column.__exit__()
 
     interfaces = [
-        (txt2img_interface, "txt2img", "txt2img"),
-        (img2img_interface, "img2img", "img2img"),
-        (extras_interface, "Extras", "extras"),
-        (pnginfo_interface, "PNG Info", "pnginfo"),
-        (modelmerger_interface, "Checkpoint Merger", "modelmerger"),
-        (train_interface, "Train", "ti"),
+            (instructions_interface, "instructions", "instructions"),
+               (txt2img_interface, "txt2img", "txt2img"),
+               (img2img_interface, "img2img", "img2img"),
+                (extras_interface, "Extras", "extras"),
+                 (pnginfo_interface, "PNG Info", "pnginfo"),
+              (modelmerger_interface, "Checkpoint Merger", "modelmerger"),
+              (train_interface, "Train", "ti"),
     ]
 
     css = ""
