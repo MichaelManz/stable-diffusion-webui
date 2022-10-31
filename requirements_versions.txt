@@ -24,3 +24,6 @@ kornia==0.6.7
 lark==1.1.2
 inflection==0.5.1
 GitPython==3.1.27
+SpeechRecognition
+pyaudio
+pocketsphinx

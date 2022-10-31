@@ -44,9 +44,13 @@ import modules.textual_inversion.ui
 import modules.hypernetworks.ui
 from modules.generation_parameters_copypaste import image_from_url_text
 
+import speech_recognition as sr
+
 # this is a fix for Windows users. Without it, javascript files will be served with text/html content-type and the browser will not show any UI
 mimetypes.init()
 mimetypes.add_type('application/javascript', '.js')
+r = sr.Recognizer()
+mic = sr.Microphone()
 
 if not cmd_opts.share and not cmd_opts.listen:
     # fix gradio phoning home
@@ -492,6 +496,7 @@ def create_toprow(is_img2img):
                 skip = gr.Button('Skip', elem_id=f"{id_part}_skip")
                 interrupt = gr.Button('Interrupt', elem_id=f"{id_part}_interrupt")
                 submit = gr.Button('Generate', elem_id=f"{id_part}_generate", variant='primary')
+                listen = gr.Button('Listen', elem_id=f"{id_part}_listen")
 
                 skip.click(
                     fn=lambda: shared.state.skip(),
@@ -514,7 +519,7 @@ def create_toprow(is_img2img):
                     prompt_style2 = gr.Dropdown(label="Style 2", elem_id=f"{id_part}_style2_index", choices=[k for k, v in shared.prompt_styles.styles.items()], value=next(iter(shared.prompt_styles.styles.keys())))
                     prompt_style2.save_to_config = True
 
-    return prompt, roll, prompt_style, negative_prompt, prompt_style2, submit, button_interrogate, button_deepbooru, prompt_style_apply, save_style, paste, token_counter, token_button
+    return prompt, roll, prompt_style, negative_prompt, prompt_style2, submit, listen, button_interrogate, button_deepbooru, prompt_style_apply, save_style, paste, token_counter, token_button
 
 
 def setup_progressbar(progressbar, preview, id_part, textinfo=None):
@@ -571,6 +576,24 @@ def apply_setting(key, value):
     return value
 
 
+def listen_func(prompt):
+    with mic as source:
+        r.adjust_for_ambient_noise(source)
+        print("listening")
+        audio = r.listen(source)
+        print("listen done")
+        try:
+            listen_result = r.recognize_sphinx(audio)
+            print(listen_result)
+        except sr.UnknownValueError:
+            # speech was unintelligible
+            print("Unable to recognize speech")
+            return "Unable to recognize speech"
+
+        return prompt + ", " + listen_result if prompt != '' else listen_result
+
+
+
 def create_refresh_button(refresh_component, refresh_method, refreshed_args, elem_id):
     def refresh():
         refresh_method()
@@ -618,7 +641,7 @@ Requested path was: {f}
                 result_gallery = gr.Gallery(label='Output', show_label=False, elem_id=f"{tabname}_gallery").style(grid=4)
 
             generation_info = None
-            with gr.Column():
+            with gr.Column(visible=False):
                 with gr.Row():
                     if tabname != "extras":
                         save = gr.Button('Save', elem_id=f'save_{tabname}')
@@ -674,7 +697,7 @@ def create_ui(wrap_gradio_gpu_call):
     parameters_copypaste.reset()
 
     with gr.Blocks(analytics_enabled=False) as txt2img_interface:
-        txt2img_prompt, roll, txt2img_prompt_style, txt2img_negative_prompt, txt2img_prompt_style2, submit, _, _, txt2img_prompt_style_apply, txt2img_save_style, txt2img_paste, token_counter, token_button = create_toprow(is_img2img=False)
+        txt2img_prompt, roll, txt2img_prompt_style, txt2img_negative_prompt, txt2img_prompt_style2, submit, listen, _, _, txt2img_prompt_style_apply, txt2img_save_style, txt2img_paste, token_counter, token_button = create_toprow(is_img2img=False)
         dummy_component = gr.Label(visible=False)
         txt_prompt_img = gr.File(label="", elem_id="txt2img_prompt_image", file_count="single", type="bytes", visible=False)
 
@@ -759,6 +782,19 @@ def create_ui(wrap_gradio_gpu_call):
             txt2img_prompt.submit(**txt2img_args)
             submit.click(**txt2img_args)
 
+            listen_args = dict(
+                fn=listen_func,
+                inputs=[
+                    txt2img_prompt
+                ],
+
+                outputs=[
+                    txt2img_prompt
+                ],
+                show_progress=False,
+            )
+            listen.click(**listen_args)
+
             txt_prompt_img.change(
                 fn=modules.images.image_data,
                 inputs=[
@@ -825,7 +861,7 @@ def create_ui(wrap_gradio_gpu_call):
             token_button.click(fn=update_token_counter, inputs=[txt2img_prompt, steps], outputs=[token_counter])
 
     with gr.Blocks(analytics_enabled=False) as img2img_interface:
-        img2img_prompt, roll, img2img_prompt_style, img2img_negative_prompt, img2img_prompt_style2, submit, img2img_interrogate, img2img_deepbooru, img2img_prompt_style_apply, img2img_save_style, img2img_paste, token_counter, token_button = create_toprow(is_img2img=True)
+        img2img_prompt, roll, img2img_prompt_style, img2img_negative_prompt, img2img_prompt_style2, submit, listen, img2img_interrogate, img2img_deepbooru, img2img_prompt_style_apply, img2img_save_style, img2img_paste, token_counter, token_button = create_toprow(is_img2img=True)
 
         with gr.Row(elem_id='img2img_progress_row'):
             img2img_prompt_img = gr.File(label="", elem_id="img2img_prompt_image", file_count="single", type="bytes", visible=False)
