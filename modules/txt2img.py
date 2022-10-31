@@ -6,8 +6,19 @@ import modules.shared as shared
 import modules.processing as processing
 from modules.ui import plaintext_to_html
 
+import random
+
+def roll_artist(prompt):
+    allowed_cats = set([x for x in shared.artist_db.categories() if len(opts.random_artist_categories)==0 or x in opts.random_artist_categories])
+    artist = random.choice([x for x in shared.artist_db.artists if x.category in allowed_cats])
+
+    return prompt + ", " + artist.name if prompt != '' else artist.name
+
 
 def txt2img(prompt: str, negative_prompt: str, prompt_style: str, prompt_style2: str, steps: int, sampler_index: int, restore_faces: bool, tiling: bool, n_iter: int, batch_size: int, cfg_scale: float, seed: int, subseed: int, subseed_strength: float, seed_resize_from_h: int, seed_resize_from_w: int, seed_enable_extras: bool, height: int, width: int, enable_hr: bool, denoising_strength: float, firstphase_width: int, firstphase_height: int, *args):
+    prompt = roll_artist(prompt)
+    print("Prompt: " + prompt)
+
     p = StableDiffusionProcessingTxt2Img(
         sd_model=shared.sd_model,
         outpath_samples=opts.outdir_samples or opts.outdir_txt2img_samples,
